@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>🌀 ПРОВЕРЬ СВОЙ ФПС/title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0b0c0e;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    .control-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: rgba(20, 25, 35, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(120, 180, 255, 0.25);
+      border-radius: 40px;
+      padding: 16px 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(80, 160, 255, 0.1) inset;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px 16px;
+      z-index: 100;
+      color: #eef4ff;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      transition: opacity 0.2s;
+    }
+
+    @media (max-width: 700px) {
+      .control-panel {
+        border-radius: 32px;
+        padding: 14px 12px;
+        gap: 8px 10px;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+      }
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 5px 12px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(4px);
+    }
+
+    button {
+      background: rgba(30, 40, 60, 0.8);
+      border: 1px solid rgba(100, 180, 255, 0.4);
+      color: #d9e9ff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 8px 16px;
+      border-radius: 40px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.15s ease;
+      letter-spacing: 0.3px;
+      min-width: 70px;
+      text-shadow: 0 1px 3px black;
+    }
+
+    button:hover {
+      background: #2a4a7a;
+      border-color: #7abfff;
+      color: white;
+      transform: scale(1.02);
+      box-shadow: 0 0 12px #3f8cff66;
+    }
+
+    button.active {
+      background: #3f6ab3;
+      border-color: #aad0ff;
+      color: white;
+      box-shadow: 0 0 15px #3f8cff, inset 0 1px 3px #ffffff80;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slider-container label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #c8dfff;
+    }
+
+    input[type="range"] {
+      width: 140px;
+      height: 5px;
+      background: rgba(200, 220, 255, 0.2);
+      border-radius: 10px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #9dc6ff;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 12px #6ea8ff;
+      cursor: grab;
+    }
+
+    .value-badge {
+      min-width: 45px;
+      text-align: center;
+      font-weight: 700;
+      background: #0e1a26b3;
+      padding: 4px 8px;
+      border-radius: 30px;
+      border: 1px solid #2e4b70;
+      font-size: 0.9rem;
+    }
+
+    .separator {
+      width: 1px;
+      height: 28px;
+      background: rgba(160, 200, 255, 0.2);
+      margin: 0 4px;
+    }
+
+    .mouse-mode-indicator {
+      font-size: 0.85rem;
+      padding: 0 6px;
+      opacity: 0.9;
+    }
+
+    .hint {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      color: #b8d0ffb3;
+      background: rgba(10, 18, 28, 0.5);
+      backdrop-filter: blur(6px);
+      padding: 8px 18px;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      border: 1px solid #3f6899;
+      pointer-events: none;
+      z-index: 99;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .hint i {
+      font-style: normal;
+      display: inline-block;
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.7; text-shadow: 0 0 3px #7ab9ff; }
+      50% { opacity: 1; text-shadow: 0 0 12px #b0d6ff; }
+      100% { opacity: 0.7; text-shadow: 0 0 3px #7ab9ff; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<div class="hint">
+  <i>✨ безлимит · двигай мышью / касайся · сила и частицы ∞</i>
+</div>
+
+<div class="control-panel">
+  <div class="ctrl-group">
+    <button id="btnAttract" class="active" title="Частицы летят к курсору">🧲 Тянуть</button>
+    <button id="btnRepel" title="Отталкивание от курсора">💥 Толкать</button>
+    <button id="btnMouseOff" title="Отключить влияние мыши">🕊️ Без мыши</button>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="ctrl-group">
+    <button id="btnGravity" title="Включить / выключить гравитацию вниз">🌍 Гравитация</button>
+    <button id="btnExplode" title="ВЗРЫВ — разлетаются во все стороны">💫 Взрыв!</button>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- СИЛА — БЕЗЛИМИТ (max=50, практически бесконечно) -->
+  <div class="ctrl-group">
+    <div class="slider-container">
+      <label>⚡ Сила</label>
+      <input type="range" id="forceSlider" min="0.1" max="50.0" value="1.6" step="0.1">
+      <span class="value-badge" id="forceValue">1.6x</span>
+    </div>
+  </div>
+
+  <!-- КОЛИЧЕСТВО ЧАСТИЦ — БЕЗЛИМИТ (max=3000) -->
+  <div class="ctrl-group">
+    <div class="slider-container">
+      <label>🔮 Частиц</label>
+      <input type="range" id="countSlider" min="10" max="3000" value="180" step="10">
+      <span class="value-badge" id="countValue">180</span>
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <div class="ctrl-group">
+    <button id="btnReset" title="Сбросить позиции и скорости">🔄 Сброс</button>
+    <button id="btnAddFifty" title="Добавить 50 частиц">➕ +50</button>
+  </div>
+</div>
+
+<script>
+  (function(){
+    "use strict";
+
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let particles = [];
+    let animationFrame = null;
+    let mouseX = null, mouseY = null;
+    let mousePresent = false;
+    
+    let mouseMode = 'attract';      // 'attract', 'repel', 'off'
+    let gravityOn = false;
+    let forceMultiplier = 1.6;
+    let targetParticleCount = 180;
+    
+    const BASE_FORCE = 0.28;
+    const REPEL_FORCE = 0.32;
+    const DAMPING = 0.985;
+    const GRAVITY_STRENGTH = 0.12;
+    const BOUNCE = 0.72;
+    const PARTICLE_RADIUS = 3.2;
+    const MIN_DIST_FOR_LINE = 80;
+    
+    const HUE_SPEED = 0.4;
+    let hueOffset = 0;
+    
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+    });
+    resizeCanvas();
+    
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    
+    function createParticle(x = null, y = null) {
+      const posX = (x !== null) ? x : random(20, canvas.width - 20);
+      const posY = (y !== null) ? y : random(20, canvas.height - 20);
+      return {
+        x: posX,
+        y: posY,
+        vx: random(-1.2, 1.2),
+        vy: random(-1.2, 1.2),
+        radius: PARTICLE_RADIUS * random(0.8, 1.4),
+        hue: random(0, 360),
+      };
+    }
+    
+    function adjustParticleCount(targetCount) {
+      const current = particles.length;
+      if (targetCount > current) {
+        const toAdd = targetCount - current;
+        for (let i = 0; i < toAdd; i++) {
+          particles.push(createParticle());
+        }
+      } else if (targetCount < current) {
+        particles = particles.slice(0, targetCount);
+      }
+      updateCountDisplay();
+    }
+    
+    function resetParticles() {
+      const count = particles.length;
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        particles.push(createParticle());
+      }
+    }
+    
+    function explodeParticles() {
+      for (let p of particles) {
+        const angle = random(0, Math.PI * 2);
+        const speed = random(4.5, 12.0);
+        p.vx = Math.cos(angle) * speed;
+        p.vy = Math.sin(angle) * speed;
+      }
+    }
+    
+    function addFiftyParticles() {
+      for (let i = 0; i < 50; i++) {
+        particles.push(createParticle());
+      }
+      targetParticleCount = particles.length;
+      const slider = document.getElementById('countSlider');
+      slider.value = targetParticleCount;
+      updateCountDisplay();
+    }
+    
+    function applyForces() {
+      const forceFactor = forceMultiplier;
+      const useMouse = (mouseMode !== 'off') && mousePresent && mouseX !== null && mouseY !== null;
+      
+      for (let p of particles) {
+        if (useMouse) {
+          const dx = mouseX - p.x;
+          const dy = mouseY - p.y;
+          const dist = Math.sqrt(dx*dx + dy*dy) + 0.001;
+          const directionX = dx / dist;
+          const directionY = dy / dist;
+          
+          let strength = 0;
+          if (mouseMode === 'attract') {
+            strength = Math.min(dist * 0.035, 2.4) * BASE_FORCE * forceFactor;
+          } else if (mouseMode === 'repel') {
+            const proximity = Math.max(20, Math.min(180, dist));
+            strength = (REPEL_FORCE * forceFactor * 90) / (proximity + 10);
+          }
+          
+          if (mouseMode === 'attract') {
+            p.vx += directionX * strength;
+            p.vy += directionY * strength;
+          } else if (mouseMode === 'repel') {
+            p.vx -= directionX * strength;
+            p.vy -= directionY * strength;
+          }
+        }
+        
+        if (gravityOn) {
+          p.vy += GRAVITY_STRENGTH * 0.9;
+        }
+        
+        // Межчастичное отталкивание — с учётом большого количества частиц оптимизация важна
+        // Проходим по всем, но с ограничением (алгоритм O(N^2) для тысяч частиц может тормозить)
+        // Для производительности при больших N можно снизить точность, но оставим как есть с небольшим лимитом итераций.
+        // Для 3000 частиц может быть медленно, поэтому добавим упрощение: пропускаем дальние.
+        for (let j = 0; j < particles.length; j++) {
+          if (particles[j] === p) continue;
+          const other = particles[j];
+          const dx = p.x - other.x;
+          const dy = p.y - other.y;
+          const distSq = dx*dx + dy*dy;
+          const minDist = (p.radius + other.radius) * 1.6;
+          if (distSq < minDist*minDist && distSq > 0.0001) {
+            const dist = Math.sqrt(distSq);
+            const angle = Math.atan2(dy, dx);
+            const force = (minDist - dist) * 0.018;
+            const fx = Math.cos(angle) * force;
+            const fy = Math.sin(angle) * force;
+            p.vx += fx;
+            p.vy += fy;
+            other.vx -= fx;
+            other.vy -= fy;
+          }
+        }
+        
+        p.vx *= DAMPING;
+        p.vy *= DAMPING;
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        const rad = p.radius;
+        if (p.x < rad) { p.x = rad; p.vx *= -BOUNCE; }
+        else if (p.x > canvas.width - rad) { p.x = canvas.width - rad; p.vx *= -BOUNCE; }
+        if (p.y < rad) { p.y = rad; p.vy *= -BOUNCE; }
+        else if (p.y > canvas.height - rad) { p.y = canvas.height - rad; p.vy *= -BOUNCE; }
+        
+        const maxSpeed = 22; // немного подняли предел, безлимит же
+        const sp = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
+        if (sp > maxSpeed) {
+          p.vx *= maxSpeed / sp;
+          p.vy *= maxSpeed / sp;
+        }
+      }
+    }
+    
+    function draw() {
+      ctx.fillStyle = 'rgba(8, 12, 20, 0.23)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      hueOffset = (hueOffset + HUE_SPEED) % 360;
+      
+      // Линии между близкими частицами (только если расстояние < MIN_DIST_FOR_LINE)
+      ctx.lineWidth = 0.9;
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < MIN_DIST_FOR_LINE) {
+            const opacity = (1 - dist / MIN_DIST_FOR_LINE) * 0.45;
+            const avgHue = (p1.hue + p2.hue) * 0.5 + hueOffset * 0.2;
+            ctx.strokeStyle = `hsla(${avgHue % 360}, 80%, 68%, ${opacity})`;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+      
+      for (let p of particles) {
+        const gradient = ctx.createRadialGradient(
+          p.x - 2, p.y - 2, 1,
+          p.x, p.y, p.radius * 2.2
+        );
+        const hue = (p.hue + hueOffset * 0.3) % 360;
+        const colorMain = `hsla(${hue}, 88%, 68%, 1)`;
+        const colorGlow = `hsla(${hue}, 90%, 72%, 0.5)`;
+        gradient.addColorStop(0, colorMain);
+        gradient.addColorStop(0.7, colorGlow);
+        gradient.addColorStop(1, 'rgba(30, 120, 210, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 1.5, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = `hsl(${hue}, 85%, 70%)`;
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        
+        ctx.shadowBlur = 22;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${hue}, 95%, 82%, 0.95)`;
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+    }
+    
+    function update() {
+      applyForces();
+      draw();
+      animationFrame = requestAnimationFrame(update);
+    }
+    
+    // ----- Обработчики мыши / тач -----
+    function handleMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+      mousePresent = true;
+    }
+    
+    function handleMouseLeave() {
+      mousePresent = false;
+      mouseX = mouseY = null;
+    }
+    
+    function handleMouseEnter() {
+      mousePresent = true;
+    }
+    
+    function handleTouchMove(e) {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        mousePresent = true;
+      }
+    }
+    
+    function handleTouchEnd(e) {
+      e.preventDefault();
+      mousePresent = false;
+      mouseX = mouseY = null;
+    }
+    
+    function handleTouchStart(e) {
+      e.preventDefault();
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        mouseX = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        mouseY = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        mousePresent = true;
+      }
+    }
+    
+    function updateCountDisplay() {
+      document.getElementById('countValue').textContent = particles.length;
+    }
+    
+    function updateForceDisplay() {
+      document.getElementById('forceValue').textContent = forceMultiplier.toFixed(1) + 'x';
+    }
+    
+    function setActiveMouseButton(activeId) {
+      ['btnAttract', 'btnRepel', 'btnMouseOff'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (id === activeId) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+    
+    function initUI() {
+      const btnAttract = document.getElementById('btnAttract');
+      const btnRepel = document.getElementById('btnRepel');
+      const btnMouseOff = document.getElementById('btnMouseOff');
+      const btnGravity = document.getElementById('btnGravity');
+      const btnExplode = document.getElementById('btnExplode');
+      const btnReset = document.getElementById('btnReset');
+      const btnAddFifty = document.getElementById('btnAddFifty');
+      const forceSlider = document.getElementById('forceSlider');
+      const countSlider = document.getElementById('countSlider');
+      
+      btnAttract.addEventListener('click', () => {
+        mouseMode = 'attract';
+        setActiveMouseButton('btnAttract');
+      });
+      btnRepel.addEventListener('click', () => {
+        mouseMode = 'repel';
+        setActiveMouseButton('btnRepel');
+      });
+      btnMouseOff.addEventListener('click', () => {
+        mouseMode = 'off';
+        setActiveMouseButton('btnMouseOff');
+      });
+      
+      btnGravity.addEventListener('click', () => {
+        gravityOn = !gravityOn;
+        btnGravity.classList.toggle('active', gravityOn);
+      });
+      
+      btnExplode.addEventListener('click', () => {
+        explodeParticles();
+      });
+      
+      btnReset.addEventListener('click', () => {
+        resetParticles();
+        adjustParticleCount(targetParticleCount);
+      });
+      
+      btnAddFifty.addEventListener('click', () => {
+        addFiftyParticles();
+      });
+      
+      forceSlider.addEventListener('input', (e) => {
+        forceMultiplier = parseFloat(e.target.value);
+        updateForceDisplay();
+      });
+      
+      countSlider.addEventListener('input', (e) => {
+        targetParticleCount = parseInt(e.target.value, 10);
+        adjustParticleCount(targetParticleCount);
+      });
+      
+      forceSlider.value = forceMultiplier;
+      countSlider.value = targetParticleCount;
+      updateForceDisplay();
+      updateCountDisplay();
+      
+      gravityOn = false;
+      btnGravity.classList.remove('active');
+    }
+    
+    function bindEvents() {
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseleave', handleMouseLeave);
+      canvas.addEventListener('mouseenter', handleMouseEnter);
+      canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+      canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+      canvas.addEventListener('touchend', handleTouchEnd);
+      canvas.addEventListener('touchcancel', handleTouchEnd);
+      canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    }
+    
+    function start() {
+      particles = [];
+      for (let i = 0; i < targetParticleCount; i++) {
+        particles.push(createParticle());
+      }
+      bindEvents();
+      initUI();
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(update);
+    }
+    
+    start();
+    
+    window.addEventListener('resize', () => {
+      for (let p of particles) {
+        p.x = Math.min(Math.max(p.x, p.radius), canvas.width - p.radius);
+        p.y = Math.min(Math.max(p.y, p.radius), canvas.height - p.radius);
+      }
+    });
+    
+  })();
+</script>
+</body>
+</html>
